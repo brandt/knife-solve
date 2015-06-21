@@ -33,12 +33,15 @@ class Chef
       def run
         environment = config[:environment]
         cookbooks = name_args
+
         if config[:node]
           node = Chef::Node.load(config[:node])
           environment ||= node.chef_environment
           cookbooks += node.run_list.run_list_items
         end
+
         environment ||= '_default'
+
         cookbooks = cookbooks.map do |arg|
           arg = arg.to_s
           if arg.include?('[')
@@ -53,10 +56,40 @@ class Chef
           # I don't think this is strictly speaking required, but do it anyway
           arg.split('@').first.split('::').first
         end
+
         ui.info("Solving [#{cookbooks.join(', ')}] in #{environment} environment")
-        solution = solve_cookbooks(environment, cookbooks)
-        solution.sort.each do |name, cb|
-          msg("#{name} #{cb.version}")
+
+        solve_cookbooks(environment, cookbooks).sort.each do |name, cb|
+          print_version(name, cb.version)
+        end
+      end
+
+      def print_version(name, vers)
+        ident = "#{name} #{vers}"
+        unless latest?(name, vers)
+          ident += colorize(:red, " (latest: #{latest[name]})")
+        end
+        msg(ident)
+      end
+
+      def colorize(color, str)
+        case color
+        when :red
+          "\e[1;31;40m" + str + "\e[0m"
+        when :blue
+          "\e[0;36;40m" + str + "\e[0m"
+        end
+      end
+
+      def latest?(name, vers)
+        latest[name] == vers
+      end
+
+      def latest
+        @latest ||= rest.get_rest("/cookbooks?latest").inject({}) do |collected, c|
+          cookbook, versions = c
+          collected[cookbook] = versions["versions"].map { |v| v['version'] }.first
+          collected
         end
       end
 
