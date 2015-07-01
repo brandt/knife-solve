@@ -67,18 +67,9 @@ class Chef
       def print_version(name, vers)
         ident = "#{name} #{vers}"
         unless latest?(name, vers)
-          ident += colorize(:red, " (latest: #{latest[name]})")
+          ident += ui.color(" (latest: #{latest[name]})", :red)
         end
         msg(ident)
-      end
-
-      def colorize(color, str)
-        case color
-        when :red
-          "\e[1;31;40m" + str + "\e[0m"
-        when :blue
-          "\e[0;36;40m" + str + "\e[0m"
-        end
       end
 
       def latest?(name, vers)
