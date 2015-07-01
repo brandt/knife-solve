@@ -30,6 +30,11 @@ class Chef
         long: '--node NAME',
         description: 'Use the run list from a given node'
 
+      option :role,
+        short: '-r',
+        long: '--role NAME',
+        description: 'Use the run list from a given role'
+
       def run
         environment = config[:environment]
         cookbooks = name_args
@@ -38,6 +43,10 @@ class Chef
           node = Chef::Node.load(config[:node])
           environment ||= node.chef_environment
           cookbooks += node.run_list.run_list_items
+        elsif config[:role]
+          role = Chef::Role.load(config[:role])
+          environment ||= role.chef_environment
+          cookbooks += role.run_list.run_list_items
         end
 
         environment ||= '_default'
