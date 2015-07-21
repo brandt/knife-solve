@@ -68,8 +68,17 @@ class Chef
 
         ui.info("Solving [#{cookbooks.join(', ')}] in #{environment} environment")
 
+        outdated_runlist = {}
+
         solve_cookbooks(environment, cookbooks).sort.each do |name, cb|
+          if cookbooks.include?(name) && !latest?(name, cb.version)
+            outdated_runlist[name] = { got: cb.version, latest: latest[name] }
+          end
           print_version(name, cb.version)
+        end
+
+        outdated_runlist.each do |name, info|
+          ui.warn("Outdated item in runlist: #{name}@#{info[:got]} (Latest: #{info[:latest]})")
         end
       end
 
