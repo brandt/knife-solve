@@ -66,7 +66,7 @@ class Chef
           arg.split('@').first.split('::').first
         end
 
-        ui.info("Solving [#{cookbooks.join(', ')}] in #{environment} environment")
+        ui.info("Solving runlist [#{cookbooks.join(', ')}] in environment #{environment}")
 
         outdated_runlist = {}
 
